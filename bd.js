@@ -28,9 +28,11 @@ function acharConteudo() {
             escrever.innerHTML += `
         
             <div class="pessoas">
-            <img src="${pessoa.foto}" alt="${pessoa.nome}">
-            <h1>${pessoa.nome}</h1>
-            <p>${ano - pessoa.nasc} anos</p>
+                <img src="${pessoa.foto}" alt="${pessoa.nome}">
+                <div>
+                    <h1>${pessoa.nome}</h1>
+                    <p>${ano - pessoa.nasc} anos</p>
+                </div>
             </div>
             `;
         };

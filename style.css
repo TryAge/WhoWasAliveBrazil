@@ -16,6 +16,7 @@ header > input {
 }
 
 .pessoas{
+
     min-width: 290px; max-width: 250px;
     max-height: 135px;
 
@@ -28,6 +29,7 @@ header > input {
     margin-right: 2px;
 
     display: inline-flex;
+    align-items: center;
 
     border: 2px;
     border-style: solid;
@@ -36,6 +38,11 @@ header > input {
 .pessoas h1 {
     font-size: 18px;
     font-weight: 700;
+
+    display: flex;
+    flex-direction: column;
+
+    margin-left: 20px;
 }
 
 .pessoas img {
