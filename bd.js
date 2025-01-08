@@ -7,40 +7,52 @@ const firebaseConfig = {
     appId: "1:975748404973:web:faf1bcaee30933a6775ee4"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Initialize Firestore (exemplo)
 const db = firebase.firestore();
 
 function acharConteudo() {
+    const botao = document.getElementById("mostrar");
+    const carregar = document.getElementById("carregar");
     var ano = parseInt(document.getElementById("ano").value);
     var escrever = document.getElementById("personsList");
 
-    escrever.innerHTML = "";
+    botao.hidden = true; // Ocultar o botão enquanto carrega
+    carregar.hidden = false; // Mostrar o indicador de carregamento
+
+    escrever.innerHTML = ""; // Limpar a lista
+
     firebase.firestore().collection('pessoas').orderBy('nasc', 'desc')
-    .get()
-    .then(snapshot => {
-        const pessoas = snapshot.docs.map(doc => doc.data());
-        pessoas.forEach(pessoa => {
+        .get()
+        .then(snapshot => {
+            const pessoas = snapshot.docs.map(doc => doc.data());
+            pessoas.forEach(pessoa => {
+                if (pessoa.nasc <= ano && pessoa.morte >= ano) {
+                    escrever.innerHTML += `
+                        <div class="pessoas">
+                            <img src="${pessoa.foto}" alt="${pessoa.nome}">
+                            <div>
+                                <h1>${pessoa.nome}</h1>
+                                <p>${ano - pessoa.nasc} anos</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
 
-        if (pessoa.nasc <= ano && pessoa.morte >= ano){
-            escrever.innerHTML += `
-        
-            <div class="pessoas">
-                <img src="${pessoa.foto}" alt="${pessoa.nome}">
-                <div>
-                    <h1>${pessoa.nome}</h1>
-                    <p>${ano - pessoa.nasc} anos</p>
-                </div>
-            </div>
-            `;
-        };
-        
+            // Restaura o estado dos botões
+            botao.hidden = false;
+            carregar.hidden = true;
+        })
+        .catch(error => {
+            console.error("Erro ao carregar os dados:", error);
 
+            // Restaura o estado dos botões mesmo em caso de erro
+            botao.hidden = false;
+            carregar.hidden = true;
         });
-      })
-    }
+}
+
 
 function post_person(){
 

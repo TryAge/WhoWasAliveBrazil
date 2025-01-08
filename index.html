@@ -12,11 +12,12 @@
     <header>
         <h1>Quem Estava Vivo Brasil</h1>
         <input value="1900" id="ano" type="number" max="2000" min="1300">
-        <button onclick="acharConteudo()">&#128269;</button>
+        <button id="mostrar" onclick="acharConteudo()" >&#128269;</button>
     </header>
-    <main>
+    <main class="centralize">
         <div id="personsList"></div>
     </main>
+
 
 
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
@@ -24,4 +25,13 @@
     <script src="bd.js"></script>
 
 </body>
+
+<div id="carregar" hidden="True" class="loading">
+    <label></label>
+</div>   
+
+<footer>
+    inspirado em <a target="_blank" href="neal.fun">Neal.fun</a>
+</footer>
+
 </html>
