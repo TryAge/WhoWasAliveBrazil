@@ -11,8 +11,9 @@
 <body onload="acharConteudo()">
     <header>
         <h1>Quem Estava Vivo Brasil</h1>
-        <input value="1900" id="ano" type="number" max="2000" min="1300">
+        <input value="1900" id="ano" type="number" min="1400" max="2000" step="1" oninput="validateYearInput(this)" onblur="validateYearInput(this)" aria-describedby="anoError">
         <button id="mostrar" onclick="acharConteudo()" >&#128269;</button>
+        <div id="anoError" class="input-error" aria-live="polite" hidden></div>
     </header>
     <main class="centralize">
         <div id="personsList"></div>
@@ -24,14 +25,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
     <script src="bd.js"></script>
 
+    <div id="carregar" hidden class="loading" aria-hidden="true">
+        <label></label>
+    </div>   
+
+    <footer>
+        inspirado em <a target="_blank" rel="noopener noreferrer" href="https://neal.fun">Neal.fun</a>
+    </footer>
+
 </body>
-
-<div id="carregar" hidden="True" class="loading">
-    <label></label>
-</div>   
-
-<footer>
-    inspirado em <a target="_blank" href="neal.fun">Neal.fun</a>
-</footer>
-
 </html>

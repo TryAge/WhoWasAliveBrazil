@@ -11,46 +11,86 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.firestore();
 
-function acharConteudo() {
+function validateYearInput(el) {
+    const MIN = 1400, MAX = 2000;
+    if (!el) return;
+    // remove caracteres não numéricos
+    let raw = String(el.value).replace(/[^\d-]/g, '');
+    if (raw === '') { el.value = ''; return; }
+    let n = parseInt(raw, 10);
+    if (isNaN(n)) { el.value = ''; return; }
+    if (n < MIN) {
+        el.value = String(MIN);
+        showAnoMessage(`Ano mínimo: ${MIN}`);
+    } else if (n > MAX) {
+        el.value = String(MAX);
+        showAnoMessage(`Ano máximo: ${MAX}`);
+    } else {
+        el.value = String(n);
+    }
+}
+
+function showAnoMessage(msg, time = 2000) {
+    const el = document.getElementById('anoError');
+    if (!el) { alert(msg); return; }
+    el.hidden = false;
+    el.textContent = msg;
+    clearTimeout(showAnoMessage._t);
+    showAnoMessage._t = setTimeout(() => { el.hidden = true; el.textContent = ''; }, time);
+}
+
+async function acharConteudo() {
     const botao = document.getElementById("mostrar");
     const carregar = document.getElementById("carregar");
-    var ano = parseInt(document.getElementById("ano").value);
-    var escrever = document.getElementById("personsList");
+    const anoInput = document.getElementById("ano");
+    const escrever = document.getElementById("personsList");
 
-    botao.hidden = true; // Ocultar o botão enquanto carrega
-    carregar.hidden = false; // Mostrar o indicador de carregamento
+    if (!botao || !carregar || !anoInput || !escrever) {
+        console.error("Elementos da página ausentes.");
+        return;
+    }
 
-    escrever.innerHTML = ""; // Limpar a lista
+    var ano = parseInt(anoInput.value, 10);
 
-    firebase.firestore().collection('pessoas').orderBy('nasc', 'desc')
-        .get()
-        .then(snapshot => {
-            const pessoas = snapshot.docs.map(doc => doc.data());
-            pessoas.forEach(pessoa => {
-                if (pessoa.nasc <= ano && pessoa.morte >= ano) {
-                    escrever.innerHTML += `
-                        <div class="pessoas">
-                            <img src="${pessoa.foto}" alt="${pessoa.nome}">
-                            <div>
-                                <h1>${pessoa.nome}</h1>
-                                <p>${ano - pessoa.nasc} anos</p>
-                            </div>
+    if (isNaN(ano) || ano < 1400 || ano > 2000) {
+        showAnoMessage('Informe um ano entre 1400 e 2000.');
+        return;
+    }
+
+    botao.hidden = true;
+    carregar.hidden = false;
+    escrever.innerHTML = "";
+
+    try {
+        const snapshot = await db.collection('pessoas').orderBy('nasc', 'desc').get();
+        const pessoas = snapshot.docs.map(doc => doc.data());
+
+        let html = "";
+        pessoas.forEach(pessoa => {
+            const nasc = Number(pessoa.nasc);
+            const morte = (typeof pessoa.morte === 'number') ? pessoa.morte : Infinity;
+            if (!isNaN(nasc) && nasc <= ano && morte >= ano) {
+                const idade = ano - nasc;
+                html += `
+                    <div class="pessoas">
+                        <img src="${escapeHtml(pessoa.foto || '')}" alt="${escapeHtml(pessoa.nome || '')}">
+                        <div>
+                            <h1>${breakNameAtMiddle(pessoa.nome || '')}</h1>
+                            <p>${escapeHtml(String(idade))} anos</p>
                         </div>
-                    `;
-                }
-            });
-
-            // Restaura o estado dos botões
-            botao.hidden = false;
-            carregar.hidden = true;
-        })
-        .catch(error => {
-            console.error("Erro ao carregar os dados:", error);
-
-            // Restaura o estado dos botões mesmo em caso de erro
-            botao.hidden = false;
-            carregar.hidden = true;
+                    </div>
+                `;
+            }
         });
+
+        escrever.innerHTML = html || '<p>Nenhum resultado.</p>';
+    } catch (error) {
+        console.error("Erro ao carregar os dados:", error);
+        showAnoMessage("Erro ao carregar os dados. Verifique o console.");
+    } finally {
+        botao.hidden = false;
+        carregar.hidden = true;
+    }
 }
 
 
@@ -71,3 +111,45 @@ function post_person(){
         })
 
 }
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+}
+
+/**
+ * Insere uma quebra de linha próxima ao meio de 'name' (em um espaço),
+ * ou um <wbr> no meio se não houver espaço.
+ * Retorna HTML seguro (escapeado) pronto para inserção via innerHTML.
+ */
+function breakNameAtMiddle(name, minLen = 22) {
+    if (!name || name.length <= minLen) return escapeHtml(name);
+    const mid = Math.floor(name.length / 2);
+    const left = name.lastIndexOf(' ', mid);
+    const right = name.indexOf(' ', mid);
+    let pos = -1;
+    if (left === -1) pos = right;
+    else if (right === -1) pos = left;
+    else pos = (mid - left) <= (right - mid) ? left : right;
+
+    if (pos === -1) {
+        // sem espaços: insere uma quebra de palavra ideal (<wbr>) no meio
+        return escapeHtml(name.slice(0, mid)) + '<wbr>' + escapeHtml(name.slice(mid));
+    } else {
+        // força quebra de linha no espaço escolhido
+        const a = escapeHtml(name.slice(0, pos));
+        const b = escapeHtml(name.slice(pos + 1));
+        return a + '<br>' + b;
+    }
+}
+
+/* Exemplo de uso — ao montar o HTML do card, trocar nome simples por breakNameAtMiddle(nome)
+escrever.innerHTML += `
+  <div class="pessoas">
+    <img src="${escapeHtml(pessoa.foto)}" alt="${escapeHtml(pessoa.nome)}">
+    <div>
+      <h1>${breakNameAtMiddle(pessoa.nome)}</h1>
+      <p>${escapeHtml(String(ano - pessoa.nasc))} anos</p>
+    </div>
+  </div>
+`;
+*/
