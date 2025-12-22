@@ -30,6 +30,31 @@ function validateYearInput(el) {
     }
 }
 
+// aceita entrada enquanto usuário digita (não força limites)
+function sanitizeYearInput(el) {
+    if (!el) return;
+    el.value = String(el.value).replace(/[^\d]/g, '');
+}
+
+// quando o usuário sai do campo ou tenta pesquisar, aplica as regras finais
+function finalizeYearInput(el) {
+    const MIN = 1400, MAX = 2000, ADJUST_LOW = 1500;
+    if (!el) return;
+    let raw = String(el.value).replace(/[^\d]/g, '');
+    if (raw === '') { el.value = ''; return; }
+    let n = parseInt(raw, 10);
+    if (isNaN(n)) { el.value = ''; return; }
+    if (n < MIN) {
+        el.value = String(ADJUST_LOW);
+        showAnoMessage(`Valor muito baixo: ajustado para ${ADJUST_LOW}`);
+    } else if (n > MAX) {
+        el.value = String(MAX);
+        showAnoMessage(`Valor muito alto: ajustado para ${MAX}`);
+    } else {
+        el.value = String(n);
+    }
+}
+
 function showAnoMessage(msg, time = 2000) {
     const el = document.getElementById('anoError');
     if (!el) { alert(msg); return; }
@@ -50,6 +75,8 @@ async function acharConteudo() {
         return;
     }
 
+    // garante validação final antes de usar o valor
+    finalizeYearInput(anoInput);
     var ano = parseInt(anoInput.value, 10);
 
     if (isNaN(ano) || ano < 1400 || ano > 2000) {

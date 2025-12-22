@@ -130,20 +130,48 @@ footer {
     #personsList {
         grid-template-columns: 1fr;
     }
+
+    /* manter os blocos em linha no mobile: imagem à esquerda, texto à direita */
     .pessoas {
-        height: auto; /* permite altura natural em mobile quando ficam em coluna */
-        flex-direction: column;
-        text-align: center;
+        height: 140px; /* altura uniforme */
+        flex-direction: row; /* imagem à esquerda, conteúdo à direita */
+        text-align: left;
+        align-items: center;
+        padding: 8px;
+        gap: 12px;
     }
+
     .pessoas img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
+        flex: 0 0 120px; /* largura fixa, não encolhe */
+        width: 120px;
+        height: 120px;
+        object-fit: contain; /* mostra a imagem sem cortes */
+        background: #f7f7f7; /* evita "vazios" com contraste neutro */
+        border-radius: 4px;
+        margin-right: 8px;
     }
+
+    .pessoas > div {
+        justify-content: center;
+        text-align: left;
+    }
+
     .pessoas h1 {
-        white-space: normal; /* permitir quebra em mobile */
-        overflow: visible;
-        text-overflow: clip;
+        /* permitir até 2 linhas e truncar com elegância se precisar */
+        margin: 0;
+        font-size: clamp(0.95rem, 2.4vw, 1.05rem);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+    }
+
+    /* pequena adaptação para telas muito estreitas */
+    @media (max-width: 360px) {
+        .pessoas { height: 110px; }
+        .pessoas img { flex-basis: 90px; width: 90px; height: 90px; }
     }
 }
 

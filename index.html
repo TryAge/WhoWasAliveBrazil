@@ -11,7 +11,10 @@
 <body onload="acharConteudo()">
     <header>
         <h1>Quem Estava Vivo Brasil</h1>
-        <input value="1900" id="ano" type="number" min="1400" max="2000" step="1" oninput="validateYearInput(this)" onblur="validateYearInput(this)" aria-describedby="anoError">
+        <input value="1900" id="ano" type="number" min="1400" max="2000" step="1"
+               oninput="sanitizeYearInput(this)"
+               onblur="finalizeYearInput(this)"
+               aria-describedby="anoError">
         <button id="mostrar" onclick="acharConteudo()" >&#128269;</button>
         <div id="anoError" class="input-error" aria-live="polite" hidden></div>
     </header>
