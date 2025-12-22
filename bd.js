@@ -64,6 +64,15 @@ function showAnoMessage(msg, time = 2000) {
     showAnoMessage._t = setTimeout(() => { el.hidden = true; el.textContent = ''; }, time);
 }
 
+function showPostMessage(msg, type = 'info', time = 3500) {
+    const el = document.getElementById('postMessage');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = (type === 'error') ? '#c00' : (type === 'success') ? '#116622' : '';
+    clearTimeout(showPostMessage._t);
+    showPostMessage._t = setTimeout(() => { el.textContent = ''; el.style.color = ''; }, time);
+}
+
 async function acharConteudo() {
     const botao = document.getElementById("mostrar");
     const carregar = document.getElementById("carregar");
@@ -121,22 +130,50 @@ async function acharConteudo() {
 }
 
 
-function post_person(){
+async function post_person() {
+    const nomeEl = document.getElementById('nome');
+    const fotoEl = document.getElementById('foto');
+    const nascEl = document.getElementById('nasc');
+    const morteEl = document.getElementById('morte');
+    const submitBtn = document.getElementById('submitBtn'); // pode ser null
 
-    const conteudo = {
-        nome: document.getElementById("nome").value,
-        nasc: parseInt(document.getElementById("nasc").value),
-        morte: parseInt(document.getElementById("morte").value),
-        foto: document.getElementById("foto").value
+    if (!nomeEl || !nascEl) { showPostMessage('Formulário incompleto na página.', 'error'); return; }
+
+    // validação final de anos
+    finalizeYearInput(nascEl);
+    finalizeYearInput(morteEl);
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        const nome = (nomeEl.value || '').trim();
+        const foto = (fotoEl ? (fotoEl.value || '').trim() : '');
+        const nasc = parseInt(nascEl.value, 10);
+        const morte = (morteEl && morteEl.value) ? parseInt(morteEl.value, 10) : null;
+
+        if (!nome) { showPostMessage('Nome é obrigatório.', 'error'); return; }
+        if (isNaN(nasc)) { showPostMessage('Ano de nascimento inválido.', 'error'); return; }
+        if (morte !== null && isNaN(morte)) { showPostMessage('Ano de morte inválido.', 'error'); return; }
+
+        const data = {
+            nome,
+            foto: foto || '',
+            nasc,
+            ...(morte !== null ? { morte } : {}),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Sempre cria novo documento (sem edição)
+        await db.collection('pessoas').add(data);
+        showPostMessage('Enviado com sucesso.', 'success');
+        if (document.getElementById('postForm')) document.getElementById('postForm').reset();
+    } catch (err) {
+        console.error(err);
+        showPostMessage('Erro ao salvar. Veja console.', 'error');
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
     }
-
-    firebase.firestore().collection("pessoas").add(conteudo).then(
-        () => {
-            window.alert("Documento adicionado com sucesso");        })
-        .catch(() => {
-            alert("Erro ao cadastrar");
-        })
-
 }
 
 function escapeHtml(str) {
